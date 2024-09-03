@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translator API Documentation</title>
+    
+    <!-- Add these favicon links -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#000000">
+    
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --code-bg: #f8f8f8;
+            --code-color: #bd4147;
+            --table-bg: #f2f2f2;
+            --table-bg-alt: #ffffff;
+            --border-color: #e0e0e0;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --code-bg: #2d2d2d;
+            --code-color: #ffa07a;
+            --table-bg: #2c2c2c;
+            --table-bg-alt: #383838;
+            --border-color: #444444;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-color);
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        code {
+            background-color: var(--code-bg);
+            border-radius: .25rem;
+            color: var(--code-color);
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 90%;
+            padding: .2rem .4rem;
+        }
+
+        .json-key {
+            color: #0550ae;
+        }
+
+        .json-string {
+            color: #690;
+        }
+
+        .json-number {
+            color: #905;
+        }
+
+        .json-boolean {
+            color: #07a;
+        }
+
+        .endpoint {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .get { background-color: #61affe; color: white; }
+        .post { background-color: #49cc90; color: white; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+        }
+
+        th { background-color: var(--table-bg); }
+
+        .example {
+            background-color: #e8f4ff;
+            padding: 10px;
+            border-left: 4px solid #2196f3;
+            margin-bottom: 20px;
+        }
+
+        .dark-mode .example {
+            background-color: #6c88a2;
+            padding: 10px;
+            border-left: 4px solid #2196f3;
+            margin-bottom: 20px;
+        }
+
+        .error-table-container {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .error-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .error-table th,
+        .error-table td {
+            border: none;
+            padding: 12px 15px;
+            text-align: left;
+            color: var(--text-color);
+        }
+
+        .error-table th {
+            background-color: var(--table-bg);
+            font-weight: bold;
+        }
+
+        .error-table tr:nth-child(even) {
+            background-color: var(--table-bg-alt);
+        }
+
+        .error-table tr:nth-child(odd) {
+            background-color: var(--table-bg);
+        }
+
+        .error-table tr:last-child td:first-child {
+            border-bottom-left-radius: 8px;
+        }
+
+        .error-table tr:last-child td:last-child {
+            border-bottom-right-radius: 8px;
+        }
+
+        /* Dark mode toggle button */
+        #dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function highlightJSON() {
+            const codeBlocks = document.querySelectorAll('pre code');
+            codeBlocks.forEach(block => {
+                const content = block.innerHTML;
+                const highlighted = content.replace(
+                    /"(\w+)":/g, '<span class="json-key">"$1":</span>'
+                ).replace(
+                    /: "([^"]*)"/g, ': <span class="json-string">"$1"</span>'
+                ).replace(
+                    /: (\d+)/g, ': <span class="json-number">$1</span>'
+                ).replace(
+                    /: (true|false)/g, ': <span class="json-boolean">$1</span>'
+                );
+                block.innerHTML = highlighted;
+            });
+        }
+        window.onload = highlightJSON;
+    </script>
+</head>
+
+<body>
+    <button id="dark-mode-toggle">Toggle Dark Mode</button>
+    <div class="container">
+        <h1>API Documentation for Translator</h1>
+
+        <p>This API provides multiple functionalities related to language translation, language detection, summarization, and text processing. The API supports multiple translation services including Google, Microsoft, and Pons. Additionally, it offers API key generation for secure access, rate limiting to manage request loads, and caching mechanisms for efficiency.</p>
+
+        <h2>Base URL</h2>
+        <p><strong>Base URL:</strong> <code>https://infinitehoax.pythonanywhere.com/</code></p>
+
+        <h2>Authentication</h2>
+        <p>The API uses API keys for authentication. Each request must include a valid API key in the <code>x-api-key</code> header.</p>
+
+        <h2>Rate Limiting</h2>
+        <p>Rate limiting is enforced to ensure fair usage:</p>
+        <ul>
+            <li><strong>Default limits:</strong> 200 requests/day, 50 requests/hour</li>
+            <li><strong>Custom limits:</strong> Specific routes may have their own rate limits.</li>
+        </ul>
+
+        <h2>Endpoints</h2>
+
+        <div class="endpoint">
+            <h3>1. Generate API Key</h3>
+            <span class="method post">POST</span>
+            <code>/generate_api_key</code>
+            <p>Generates a new API key for a user.</p>
+            <p><strong>Rate Limit:</strong> No rate limit</p>
+
+            <h4>Request Body:</h4>
+            <pre><code>{
+    "user_name": "your_username"
+}</code></pre>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "api_key": "generated_api_key"
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If <code>user_name</code> is missing.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>2. Get Supported Languages</h3>
+            <span class="method get">GET</span>
+            <code>/getLang</code>
+            <p>Retrieves the supported languages for a specified translator.</p>
+            <p><strong>Rate Limit:</strong> 10 requests/minute</p>
+
+            <h4>Query Parameters:</h4>
+            <ul>
+                <li><code>translator</code>: (Optional) The translator to use (default: <code>google</code>). Options: <code>google</code>, <code>microsoft</code>, <code>pons</code>.</li>
+            </ul>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "language_code": "Language Name"
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If the translator is unsupported.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>3. Translate Text</h3>
+            <span class="method post">POST</span>
+            <code>/translate</code>
+            <p>Translates text from one language to another.</p>
+            <p><strong>Rate Limit:</strong> 100 requests/minute</p>
+
+            <h4>Request Body:</h4>
+            <pre><code>{
+    "text": "Text to translate",
+    "source_lang": "Source language code (optional, default is 'auto')",
+    "target_lang": "Target language code",
+    "translator": "Translator to use (optional, default is 'google')"
+}</code></pre>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "translated_text": "Translated text",
+    "source": "api"  // or "cache"
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If <code>text</code> or <code>target_lang</code> is missing, or if the translator is unsupported.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>4. Translate URL Text</h3>
+            <span class="method post">POST</span>
+            <code>/translate_url</code>
+            <p>Scrapes text from a given URL and translates it.</p>
+            <p><strong>Rate Limit:</strong> 20 requests/minute</p>
+
+            <h4>Request Body:</h4>
+            <pre><code>{
+    "url": "URL to scrape and translate",
+    "source_lang": "Source language code (optional, default is 'auto')",
+    "target_lang": "Target language code",
+    "translator": "Translator to use (optional, default is 'google')"
+}</code></pre>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "translated_text": "Translated text"
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If <code>url</code> or <code>target_lang</code> is missing, or if the translator is unsupported.</li>
+                <li><strong>500 Internal Server Error:</strong> If scraping or translation fails.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>5. Detect Language</h3>
+            <span class="method post">POST</span>
+            <code>/detect_language</code>
+            <p>Detects the language of the provided text.</p>
+            <p><strong>Rate Limit:</strong> 50 requests/minute</p>
+
+            <h4>Request Body:</h4>
+            <pre><code>{
+    "text": "Text for language detection"
+}</code></pre>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "detected_language": "Detected language code"
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If <code>text</code> is missing.</li>
+                <li><strong>500 Internal Server Error:</strong> If language detection fails.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>6. Available Language Pairs</h3>
+            <span class="method get">GET</span>
+            <code>/available_pairs</code>
+            <p>Lists all possible translation language pairs for a specified translator.</p>
+            <p><strong>Rate Limit:</strong> 20 requests/minute</p>
+
+            <h4>Query Parameters:</h4>
+            <ul>
+                <li><code>translator</code>: (Optional) The translator to use (default: <code>google</code>). Options: <code>google</code>, <code>microsoft</code>, <code>pons</code>.</li>
+            </ul>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "language_pairs": [
+        ["source_lang", "target_lang"],
+        ["source_lang", "target_lang"]
+    ]
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If the translator is unsupported.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>7. Bulk Translate</h3>
+            <span class="method post">POST</span>
+            <code>/bulk_translate</code>
+            <p>Translates multiple texts at once.</p>
+            <p><strong>Rate Limit:</strong> 50 requests/minute</p>
+
+            <h4>Request Body:</h4>
+            <pre><code>{
+    "texts": ["Text1", "Text2", "Text3"],
+    "source_lang": "Source language code (optional, default is 'auto')",
+    "target_lang": "Target language code",
+    "translator": "Translator to use (optional, default is 'google')"
+}</code></pre>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "translations": ["Translated Text1", "Translated Text2", "Translated Text3"]
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If <code>texts</code> or <code>target_lang</code> is missing, or if the translator is unsupported.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>8. Summarize and Translate</h3>
+            <span class="method post">POST</span>
+            <code>/summarize_and_translate</code>
+            <p>Summarizes a given text and translates the summary.</p>
+            <p><strong>Rate Limit:</strong> 30 requests/minute</p>
+
+            <h4>Request Body:</h4>
+            <pre><code>{
+    "text": "Text to summarize and translate",
+    "target_lang": "Target language code",
+    "translator": "Translator to use (optional, default is 'google')"
+}</code></pre>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "summary": "Summarized text",
+    "translated_summary": "Translated summary"
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If <code>text</code> or <code>target_lang</code> is missing.</li>
+                <li><strong>500 Internal Server Error:</strong> If summarization or translation fails.</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>9. AI Translate</h3>
+            <span class="method post">POST</span>
+            <code>/ai_translate</code>
+            <p>Translates text using an AI model for more advanced and nuanced translations.</p>
+            <p><strong>Rate Limit:</strong> 30 requests/minute</p>
+
+            <h4>Request Body:</h4>
+            <pre><code>{
+    "text": "Text to translate",
+    "target_lang": "Target language code"
+}</code></pre>
+
+            <h4>Response:</h4>
+            <pre><code>{
+    "translated_text": "Translated text using AI"
+}</code></pre>
+
+            <h4>Error Responses:</h4>
+            <ul>
+                <li><strong>400 Bad Request:</strong> If <code>text</code> or <code>target_lang</code> is missing.</li>
+                <li><strong>500 Internal Server Error:</strong> If AI translation fails.</li>
+            </ul>
+        </div>
+
+        <h2>Error Codes</h2>
+        <div class="error-table-container">
+            <table class="error-table">
+                <tr>
+                    <th>Code</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>400</td>
+                    <td>Bad Request: The request is malformed or missing required parameters.</td>
+                </tr>
+                <tr>
+                    <td>401</td>
+                    <td>Unauthorized: Missing or invalid API key.</td>
+                </tr>
+                <tr>
+                    <td>403</td>
+                    <td>Forbidden: API key is invalid or inactive.</td>
+                </tr>
+                <tr>
+                    <td>429</td>
+                    <td>Too Many Requests: Rate limit exceeded.</td>
+                </tr>
+                <tr>
+                    <td>500</td>
+                    <td>Internal Server Error: An unexpected error occurred on the server.</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>Caching</h2>
+        <p>Caching is implemented in-memory to store translation results for one hour to reduce the load on translation services and improve response times.</p>
+
+        <h2>Logging</h2>
+        <p>Logging is enabled at the <code>DEBUG</code> level to help with debugging and tracking API usage.</p>
+
+        <h2>Example Usage</h2>
+
+        <div class="example">
+            <h3>Generating an API Key</h3>
+            <pre><code>curl -X POST https://&lt;your-domain&gt;/api/generate_api_key -d '{"user_name": "your_username"}' -H "Content-Type: application/json"</code></pre>
+        </div>
+
+        <div class="example">
+            <h3>Translating Text</h3>
+            <pre><code>curl -X POST https://&lt;your-domain&gt;/api/translate -d '{"text": "Hello", "target_lang": "es"}' -H "x-api-key: your_api_key" -H "Content-Type: application/json"</code></pre>
+        </div>
+
+    </div>
+
+    <script>
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const body = document.body;
+
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', body.classList.contains('dark-mode'));
+        });
+
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+
+</html>
